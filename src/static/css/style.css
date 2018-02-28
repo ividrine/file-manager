@@ -1,0 +1,141 @@
+/*
+    font-family: 'Roboto Condensed', sans-serif;
+    font-family: 'Arimo', sans-serif;
+*/
+
+.html, body {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background-color: #565c66;
+}
+
+.container {
+    color: white !important;
+    width: 90% !important;
+    margin: 0 auto !important;
+    overflow: hidden !important;
+    max-width: 100% !important;
+}
+
+.folder {
+}
+
+.file-wrap {
+    word-wrap: break-word;
+    text-align: center;
+    display:inline-block;
+    width: 8%;
+    margin: 1%;
+    font-family: 'Roboto Condensed', sans-serif;
+}
+
+.file-wrap p {
+    font-size: 14px;
+    color: #FFFFFF;
+}
+
+.tools {
+    position: absolute;
+    right: 8%;
+    top: -9px;
+}
+
+.arrow {
+    padding: 0px 10px;
+    font-size: 56px !important;
+    transition: opacity 0.3s ease;
+    position: relative;
+    top: 12px;
+}
+
+.arrow:hover {
+    opacity: 0.8;
+    cursor: pointer;
+}
+
+.tool-icon {
+    padding: 0px 10px;
+    font-size: 32px !important;
+    transition: opacity 0.3s ease;
+}
+.tool-icon:hover {
+    cursor: pointer;
+    opacity: 0.8;
+}
+
+.del {
+    color: #bc6b6b !important;
+}
+.edit {
+    color: #6a98fc !important;
+}
+
+.add {
+    color: #54d85f !important;
+}
+
+.dir {
+    margin-top: 40px;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.bc {
+    font-family: 'Roboto Condensed', sans-serif;
+    font-size: 20px;
+    background-color: #e2e2e2;
+    padding: 0px 0px 0px 60px;
+    width: 100%;
+    margin: 0 auto;
+    border-radius: 3px;
+    color: #282828 !important;
+}
+
+.bc p {
+    display:inline-block;
+}
+
+
+.material-icons {
+    font-size: 75px;
+}
+
+.dark-grey {
+    color: #282828 !important;
+}
+
+.dark-grey:hover {
+    cursor: default;
+}
+
+.light-grey {
+    color: #666666 !important;
+}
+
+[type="checkbox"].filled-in:not(:checked)+label:after {
+    border: 2px solid white;
+}
+
+.c-label {
+    padding-left: 16px !important;
+    top: -3px;
+}
+
+.c-label:after {
+    width: 14px !important;
+    height: 14px !important;
+    
+}
+
+[type="checkbox"].filled-in:checked+label:before {
+    top: -1px;
+    left: 0px;
+    width: 6px;
+    height: 11px;
+}
+
+.btn {
+    margin-right: 9px;
+    margin-bottom: 13px;
+}
