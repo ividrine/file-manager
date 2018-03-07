@@ -28,7 +28,7 @@ It will also return the current working directory as a string
 
 If the query parameter `path` isn't specified, it will default to returning the contents of `/ividri`
 
-Example `localhost:3000/api/files?path=/ividr/desktop
+Example `localhost:3000/api/files?path=/ividr/desktop`
 
 ### Post
 #### /api/create
