@@ -29358,6 +29358,10 @@ var _Directory = __webpack_require__(57);
 
 var _Directory2 = _interopRequireDefault(_Directory);
 
+var _materializeCss = __webpack_require__(61);
+
+var _materializeCss2 = _interopRequireDefault(_materializeCss);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -29386,11 +29390,54 @@ var App = function (_Component) {
         _this2.select = _this2.select.bind(_this2);
         _this2.setSelect = _this2.setSelect.bind(_this2);
         _this2.delete = _this2.delete.bind(_this2);
-        _this2.createFile - _this2.createFile.bind(_this2);
+        _this2.createFile = _this2.createFile.bind(_this2);
+        _this2.getFavorites = _this2.getFavorites.bind(_this2);
+        _this2.loadDefault = _this2.loadDefault.bind(_this2);
+        _this2.addToFavorites = _this2.addToFavorites.bind(_this2);
+
         return _this2;
     }
 
     _createClass(App, [{
+        key: 'addToFavorites',
+        value: function addToFavorites() {
+            var _this3 = this;
+
+            if (this.state.selected.length == 0) return false;
+
+            var _files = [];
+
+            this.state.selected.forEach(function (f) {
+                _files.push(f.path);
+            });
+
+            _axios2.default.post('/api/favorites', { files: _files }).then(function (resp) {
+                _materializeCss2.default.toast('You added ' + _files.length + ' items to favorites', 4000);
+                _this3.setState({
+                    selectOpen: false,
+                    selected: []
+                });
+            }).catch(function (err) {
+                console.log(err);
+            });
+        }
+    }, {
+        key: 'getFavorites',
+        value: function getFavorites() {
+
+            var _this = this;
+
+            _axios2.default.get('/api/favorites').then(function (resp) {
+                console.log(resp);
+                _this.setState({
+                    files: resp.data,
+                    cwd: []
+                });
+            }).catch(function (err) {
+                console.log(err);
+            });
+        }
+    }, {
         key: 'createFile',
         value: function createFile(_type, _name) {
             console.log(this.state);
@@ -29443,36 +29490,23 @@ var App = function (_Component) {
     }, {
         key: 'openDir',
         value: function openDir(name) {
-            var _this3 = this;
-
-            var _cwd = this.state.cwd;
-            var query = "";
-            for (var i = 0; i < _cwd.length; i++) {
-                query += "/" + _cwd[i];
-            }
-            query += "/" + name;
-
-            _axios2.default.get('/api/files?path=' + query).then(function (resp) {
-                _this3.setState({
-                    files: _this3.sort(resp.data.files),
-                    cwd: resp.data.cwd,
-                    selected: []
-                });
-            }).catch(function (err) {
-                console.log(err);
-            });
-        }
-    }, {
-        key: 'up',
-        value: function up() {
             var _this4 = this;
 
             var _cwd = this.state.cwd;
-            _cwd.pop();
             var query = "";
-            for (var i = 0; i < _cwd.length; i++) {
-                query += "/" + _cwd[i];
+
+            if (_cwd.length == 0) {
+                query = name;
+            } else {
+                for (var i = 0; i < _cwd.length; i++) {
+                    query += "/" + _cwd[i];
+                }
+                query += "/" + name;
             }
+
+            console.log("QUERY");
+            console.log(query);
+
             _axios2.default.get('/api/files?path=' + query).then(function (resp) {
                 _this4.setState({
                     files: _this4.sort(resp.data.files),
@@ -29484,9 +29518,30 @@ var App = function (_Component) {
             });
         }
     }, {
+        key: 'up',
+        value: function up() {
+            var _this5 = this;
+
+            var _cwd = this.state.cwd;
+            _cwd.pop();
+            var query = "";
+            for (var i = 0; i < _cwd.length; i++) {
+                query += "/" + _cwd[i];
+            }
+            _axios2.default.get('/api/files?path=' + query).then(function (resp) {
+                _this5.setState({
+                    files: _this5.sort(resp.data.files),
+                    cwd: resp.data.cwd,
+                    selected: []
+                });
+            }).catch(function (err) {
+                console.log(err);
+            });
+        }
+    }, {
         key: 'delete',
         value: function _delete() {
-            var _this5 = this;
+            var _this6 = this;
 
             var _cwd = this.state.cwd;
             var cwd_str = "";
@@ -29506,7 +29561,7 @@ var App = function (_Component) {
 
             _axios2.default.delete('/api/delete', { data: { _strArr: strArr, dir: cwd_str } }).then(function (resp) {
                 _this.setState({
-                    files: _this5.sort(resp.data.files),
+                    files: _this6.sort(resp.data.files),
                     selected: [],
                     selectOpen: false
                 });
@@ -29551,18 +29606,25 @@ var App = function (_Component) {
             }
         }
     }, {
-        key: 'componentWillMount',
-        value: function componentWillMount() {
-            var _this6 = this;
+        key: 'loadDefault',
+        value: function loadDefault() {
+            var _this7 = this;
 
             _axios2.default.get('/api/files').then(function (resp) {
-                _this6.setState({
-                    files: _this6.sort(resp.data.files),
+                _this7.setState({
+                    files: _this7.sort(resp.data.files),
                     cwd: resp.data.cwd
                 });
             }).catch(function (err) {
+
                 console.log(err);
             });
+        }
+    }, {
+        key: 'componentWillMount',
+        value: function componentWillMount() {
+
+            this.loadDefault();
         }
     }, {
         key: 'render',
@@ -29571,8 +29633,8 @@ var App = function (_Component) {
             return _react2.default.createElement(
                 'div',
                 { className: 'container' },
-                _react2.default.createElement(_BreadCrumb2.default, { createFile: this.createFile.bind(this), setFile: this.setFile, 'delete': this.delete, selectOpen: this.state.selectOpen, setSelect: this.setSelect, up: this.up, cwd: this.state.cwd }),
-                _react2.default.createElement(_Directory2.default, { selectOpen: this.state.selectOpen, select: this.select, up: this.up, openDir: this.openDir, files: this.state.files })
+                _react2.default.createElement(_BreadCrumb2.default, { addToFavorites: this.addToFavorites, loadDefault: this.loadDefault, getFavorites: this.getFavorites, createFile: this.createFile, setFile: this.setFile, 'delete': this.delete, selectOpen: this.state.selectOpen, setSelect: this.setSelect, up: this.up, cwd: this.state.cwd }),
+                _react2.default.createElement(_Directory2.default, { selectOpen: this.state.selectOpen, select: this.select, up: this.up, openDir: this.openDir, files: this.state.files, cwd: this.state.cwd })
             );
         }
     }]);
@@ -30553,15 +30615,27 @@ var BreadCrumb = function (_Component) {
 
             var _html = [];
 
-            this.props.cwd.map(function (name) {
+            console.log("CWD");
+
+            if (this.props.cwd.length == 0) {
                 _html.push(_react2.default.createElement(
                     'p',
-                    { key: name },
-                    '/',
-                    name
+                    null,
+                    'Favorites'
                 ));
-            });
+            } else {
+                this.props.cwd.map(function (name) {
+                    _html.push(_react2.default.createElement(
+                        'p',
+                        { key: name },
+                        '/',
+                        name
+                    ));
+                });
+            }
 
+            console.log("HTML");
+            console.log(_html);
             return _react2.default.createElement(
                 'div',
                 { className: 'bc' },
@@ -30573,25 +30647,18 @@ var BreadCrumb = function (_Component) {
                         'a',
                         { onClick: function onClick() {
                                 _this2.props.setSelect();
-                            }, className: 'waves-effect waves-light btn' },
+                            }, className: 'btn' },
                         'Select'
-                    ),
-                    _react2.default.createElement(
-                        'a',
-                        { className: 'modal-trigger', href: '#modal1' },
-                        _react2.default.createElement(
-                            'i',
-                            { className: 'material-icons tool-icon add' },
-                            'add_circle_outline'
-                        )
                     ),
                     this.props.selectOpen && _react2.default.createElement(
                         'div',
                         { style: { display: "inline-block" } },
                         _react2.default.createElement(
                             'i',
-                            { className: 'material-icons tool-icon edit' },
-                            'mode_edit'
+                            { onClick: function onClick() {
+                                    _this2.props.addToFavorites();
+                                }, style: { color: '#d6c662' }, className: 'material-icons tool-icon' },
+                            'star_border'
                         ),
                         _react2.default.createElement(
                             'i',
@@ -30599,6 +30666,37 @@ var BreadCrumb = function (_Component) {
                                     _this2.props.delete();
                                 }, className: 'material-icons tool-icon del' },
                             'delete_forever'
+                        )
+                    ),
+                    _react2.default.createElement(
+                        'a',
+                        { className: 'modal-trigger', href: '#modal1' },
+                        _react2.default.createElement(
+                            'i',
+                            { style: { color: "#72c978" }, className: 'material-icons tool-icon' },
+                            'add_circle'
+                        )
+                    ),
+                    _react2.default.createElement(
+                        'a',
+                        { onClick: function onClick() {
+                                _this2.props.getFavorites();
+                            } },
+                        _react2.default.createElement(
+                            'i',
+                            { style: { color: '#d6c662' }, className: 'material-icons tool-icon' },
+                            'star'
+                        )
+                    ),
+                    _react2.default.createElement(
+                        'a',
+                        { onClick: function onClick() {
+                                _this2.props.loadDefault();
+                            } },
+                        _react2.default.createElement(
+                            'i',
+                            { style: { color: "#3a3a3a" }, className: 'material-icons tool-icon' },
+                            'home'
                         )
                     ),
                     _react2.default.createElement(
@@ -30698,7 +30796,19 @@ var _axios = __webpack_require__(17);
 
 var _axios2 = _interopRequireDefault(_axios);
 
-var _materializeCss = __webpack_require__(58);
+var _ContextMenu = __webpack_require__(58);
+
+var _ContextMenu2 = _interopRequireDefault(_ContextMenu);
+
+var _edit = __webpack_require__(59);
+
+var _edit2 = _interopRequireDefault(_edit);
+
+var _delete = __webpack_require__(60);
+
+var _delete2 = _interopRequireDefault(_delete);
+
+var _materializeCss = __webpack_require__(61);
 
 var _materializeCss2 = _interopRequireDefault(_materializeCss);
 
@@ -30709,6 +30819,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
 //import jquery from 'jquery';
 
 
@@ -30718,7 +30829,11 @@ var Directory = function (_Component) {
     function Directory(props) {
         _classCallCheck(this, Directory);
 
-        return _possibleConstructorReturn(this, (Directory.__proto__ || Object.getPrototypeOf(Directory)).call(this, props));
+        var _this = _possibleConstructorReturn(this, (Directory.__proto__ || Object.getPrototypeOf(Directory)).call(this, props));
+
+        _this.renameHandler = _this.renameHandler.bind(_this);
+        _this.deleteHandler = _this.deleteHandler.bind(_this);
+        return _this;
     }
 
     _createClass(Directory, [{
@@ -30727,6 +30842,22 @@ var Directory = function (_Component) {
     }, {
         key: 'componentWillMount',
         value: function componentWillMount() {}
+    }, {
+        key: 'renameHandler',
+        value: function renameHandler() {
+            console.log("RENAME");
+        }
+    }, {
+        key: 'deleteHandler',
+        value: function deleteHandler() {
+            console.log("DELETE");
+        }
+    }, {
+        key: 'componentDidMount',
+        value: function componentDidMount() {
+            console.log(_delete2.default);
+            console.log(_edit2.default);
+        }
     }, {
         key: 'render',
         value: function render() {
@@ -30740,7 +30871,7 @@ var Directory = function (_Component) {
                     if (f.name_prfx) {
                         html.push(_react2.default.createElement(
                             'div',
-                            { className: 'file-wrap', key: i },
+                            { className: 'file-wrap clickable', key: i },
                             _this2.props.selectOpen && _react2.default.createElement(
                                 'div',
                                 { style: { display: "inline-block" } },
@@ -30763,7 +30894,7 @@ var Directory = function (_Component) {
                     } else {
                         html.push(_react2.default.createElement(
                             'div',
-                            { className: 'file-wrap', key: i },
+                            { className: 'file-wrap clickable', key: i },
                             _this2.props.selectOpen && _react2.default.createElement(
                                 'div',
                                 { style: { display: "inline-block" } },
@@ -30788,7 +30919,7 @@ var Directory = function (_Component) {
                     if (f.name_prfx) {
                         html.push(_react2.default.createElement(
                             'div',
-                            { className: 'file-wrap dark-grey', key: i },
+                            { className: 'file-wrap dark-grey clickable', key: i },
                             _this2.props.selectOpen && _react2.default.createElement(
                                 'div',
                                 { style: { display: "inline-block" } },
@@ -30797,7 +30928,14 @@ var Directory = function (_Component) {
                                     }, type: 'checkbox', className: 'filled-in', id: f.name }),
                                 _react2.default.createElement('label', { className: 'c-label', htmlFor: f.name })
                             ),
-                            _react2.default.createElement(
+                            _this2.props.cwd.length == 0 && _react2.default.createElement(
+                                'i',
+                                { onDoubleClick: function onDoubleClick() {
+                                        _this2.props.openDir(f.path);
+                                    }, className: 'material-icons folder' },
+                                'folder'
+                            ),
+                            !(_this2.props.cwd.length == 0) && _react2.default.createElement(
                                 'i',
                                 { onDoubleClick: function onDoubleClick() {
                                         _this2.props.openDir(f.name);
@@ -30813,7 +30951,7 @@ var Directory = function (_Component) {
                     } else {
                         html.push(_react2.default.createElement(
                             'div',
-                            { className: 'file-wrap dark-grey', key: i },
+                            { className: 'file-wrap dark-grey clickable', key: i },
                             _this2.props.selectOpen && _react2.default.createElement(
                                 'div',
                                 { style: { display: "inline-block" } },
@@ -30822,7 +30960,14 @@ var Directory = function (_Component) {
                                     }, type: 'checkbox', className: 'filled-in', id: f.name }),
                                 _react2.default.createElement('label', { className: 'c-label', htmlFor: f.name })
                             ),
-                            _react2.default.createElement(
+                            _this2.props.cwd.length == 0 && _react2.default.createElement(
+                                'i',
+                                { onDoubleClick: function onDoubleClick() {
+                                        _this2.props.openDir(f.path);
+                                    }, className: 'material-icons folder' },
+                                'folder'
+                            ),
+                            !(_this2.props.cwd.length == 0) && _react2.default.createElement(
                                 'i',
                                 { onDoubleClick: function onDoubleClick() {
                                         _this2.props.openDir(f.name);
@@ -30844,7 +30989,8 @@ var Directory = function (_Component) {
             return _react2.default.createElement(
                 'div',
                 { className: 'dir' },
-                html
+                html,
+                _react2.default.createElement(_ContextMenu2.default, { contextID: 'clickable', items: [{ 'icon': '/img/edit.svg', 'label': 'Rename', 'function': this.renameHandler }, { 'icon': '/img/delete.svg', 'label': 'Delete', 'function': this.deleteHandler }] })
             );
         }
     }]);
@@ -30856,6 +31002,129 @@ exports.default = Directory;
 
 /***/ }),
 /* 58 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = __webpack_require__(2);
+
+var _react2 = _interopRequireDefault(_react);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var ContextMenu = function (_React$Component) {
+  _inherits(ContextMenu, _React$Component);
+
+  function ContextMenu(props) {
+    _classCallCheck(this, ContextMenu);
+
+    var _this = _possibleConstructorReturn(this, (ContextMenu.__proto__ || Object.getPrototypeOf(ContextMenu)).call(this, props));
+
+    _this.state = {
+      target: ''
+    };
+    return _this;
+  }
+
+  _createClass(ContextMenu, [{
+    key: 'componentDidMount',
+    value: function componentDidMount() {
+      var _this2 = this;
+
+      setTimeout(function () {
+
+        var k = document.getElementsByClassName(_this2.props.contextID);
+
+        for (var i = 0; i < k.length; i++) {
+          var context = k[i];
+          context.addEventListener('contextmenu', function () {
+            _this2.openContextMenu(event);
+          });
+        }
+
+        var menu = document.getElementById('contextMenu');
+        menu.addEventListener('mouseleave', function () {
+          _this2.closeContextMenu();
+        });
+      }, 100);
+    }
+  }, {
+    key: 'render',
+    value: function render() {
+      var _this3 = this;
+
+      return _react2.default.createElement(
+        'div',
+        { id: 'contextMenu' },
+        this.props.items.map(function (item) {
+          var clickHandler = function clickHandler() {
+            _this3.closeContextMenu();
+            item.function(_this3.state.target);
+          };
+          var label = item.label;
+          var icon = item.icon;
+          return _react2.default.createElement(
+            'span',
+            { onClick: clickHandler, key: label },
+            icon && _react2.default.createElement('img', { className: 'icon', src: icon, role: 'presentation' }),
+            label
+          );
+        })
+      );
+    }
+  }, {
+    key: 'openContextMenu',
+    value: function openContextMenu(event) {
+      event.preventDefault();
+      this.setState({ target: event.target });
+
+      var xOffset = Math.max(document.documentElement.scrollLeft, document.body.scrollLeft);
+      var yOffset = Math.max(document.documentElement.scrollTop, document.body.scrollTop);
+
+      var menu = document.getElementById('contextMenu');
+
+      menu.style.cssText = 'left: ' + (event.clientX + xOffset) + 'px;' + 'top: ' + (event.clientY + yOffset) + 'px;' + 'visibility: visible;';
+    }
+  }, {
+    key: 'closeContextMenu',
+    value: function closeContextMenu() {
+      var menu = document.getElementById('contextMenu');
+      menu.style.cssText = 'visibility: hidden;';
+    }
+  }]);
+
+  return ContextMenu;
+}(_react2.default.Component);
+
+exports.default = ContextMenu;
+
+/***/ }),
+/* 59 */
+/***/ (function(module, exports) {
+
+module.exports = {"attributes":{"fill":"#000000","height":"24","viewBox":"0 0 24 24","width":"24","xmlns":"http://www.w3.org/2000/svg"},"content":"<path d=\"M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z\"/>     <path d=\"M0 0h24v24H0z\" fill=\"none\"/>"}
+
+/***/ }),
+/* 60 */
+/***/ (function(module, exports) {
+
+module.exports = {"attributes":{"fill":"#000000","height":"24","viewBox":"0 0 24 24","width":"24","xmlns":"http://www.w3.org/2000/svg"},"content":"<path d=\"M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z\"/>     <path d=\"M0 0h24v24H0z\" fill=\"none\"/>"}
+
+/***/ }),
+/* 61 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(module) {var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;var __WEBPACK_AMD_DEFINE_RESULT__;var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -32077,13 +32346,13 @@ jQuery.Velocity ? console.log("Velocity is already loaded. You may be needlessly
       }
     }, destroy: function () {
       this.element && lc(this, !1), this.handlers = {}, this.session = {}, this.input.destroy(), this.element = null;
-    } }, n(hc, { INPUT_START: O, INPUT_MOVE: P, INPUT_END: Q, INPUT_CANCEL: R, STATE_POSSIBLE: Rb, STATE_BEGAN: Sb, STATE_CHANGED: Tb, STATE_ENDED: Ub, STATE_RECOGNIZED: Vb, STATE_CANCELLED: Wb, STATE_FAILED: Xb, DIRECTION_NONE: S, DIRECTION_LEFT: T, DIRECTION_RIGHT: U, DIRECTION_UP: V, DIRECTION_DOWN: W, DIRECTION_HORIZONTAL: X, DIRECTION_VERTICAL: Y, DIRECTION_ALL: Z, Manager: kc, Input: ab, TouchAction: Pb, TouchInput: Eb, MouseInput: rb, PointerEventInput: wb, TouchMouseInput: Gb, SingleTouchInput: Ab, Recognizer: Yb, AttrRecognizer: ac, Tap: gc, Pan: bc, Swipe: fc, Pinch: cc, Rotate: ec, Press: dc, on: t, off: u, each: m, merge: o, extend: n, inherit: p, bindFn: q, prefixed: B }), "function" == g && __webpack_require__(60) ? !(__WEBPACK_AMD_DEFINE_RESULT__ = (function () {
+    } }, n(hc, { INPUT_START: O, INPUT_MOVE: P, INPUT_END: Q, INPUT_CANCEL: R, STATE_POSSIBLE: Rb, STATE_BEGAN: Sb, STATE_CHANGED: Tb, STATE_ENDED: Ub, STATE_RECOGNIZED: Vb, STATE_CANCELLED: Wb, STATE_FAILED: Xb, DIRECTION_NONE: S, DIRECTION_LEFT: T, DIRECTION_RIGHT: U, DIRECTION_UP: V, DIRECTION_DOWN: W, DIRECTION_HORIZONTAL: X, DIRECTION_VERTICAL: Y, DIRECTION_ALL: Z, Manager: kc, Input: ab, TouchAction: Pb, TouchInput: Eb, MouseInput: rb, PointerEventInput: wb, TouchMouseInput: Gb, SingleTouchInput: Ab, Recognizer: Yb, AttrRecognizer: ac, Tap: gc, Pan: bc, Swipe: fc, Pinch: cc, Rotate: ec, Press: dc, on: t, off: u, each: m, merge: o, extend: n, inherit: p, bindFn: q, prefixed: B }), "function" == g && __webpack_require__(63) ? !(__WEBPACK_AMD_DEFINE_RESULT__ = (function () {
     return hc;
   }).call(exports, __webpack_require__, exports, module),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)) : "undefined" != typeof module && module.exports ? module.exports = hc : a[c] = hc;
 }(window, document, "Hammer");;(function (factory) {
   if (true) {
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(9), __webpack_require__(61)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(9), __webpack_require__(64)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
 				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
 				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -40889,10 +41158,10 @@ if (Vel) {
   };
 })(jQuery);
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(59)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(62)(module)))
 
 /***/ }),
-/* 59 */
+/* 62 */
 /***/ (function(module, exports) {
 
 module.exports = function(module) {
@@ -40920,7 +41189,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 60 */
+/* 63 */
 /***/ (function(module, exports) {
 
 /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {/* globals __webpack_amd_options__ */
@@ -40929,7 +41198,7 @@ module.exports = __webpack_amd_options__;
 /* WEBPACK VAR INJECTION */}.call(exports, {}))
 
 /***/ }),
-/* 61 */
+/* 64 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_RESULT__;/*! Hammer.JS - v2.0.7 - 2016-04-22

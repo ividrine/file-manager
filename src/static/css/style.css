@@ -67,13 +67,6 @@
 .del {
     color: #bc6b6b !important;
 }
-.edit {
-    color: #6a98fc !important;
-}
-
-.add {
-    color: #54d85f !important;
-}
 
 .dir {
     margin-top: 40px;
@@ -138,4 +131,34 @@
 .btn {
     margin-right: 9px;
     margin-bottom: 13px;
+}
+
+#contextMenu {
+    position: absolute;
+
+    display: flex;
+    flex-flow: column;
+
+    border: 1px solid rgba(0,0,0,0.15);
+    border-radius:2px;
+    box-shadow:0 1px 1px 1px rgba(0,0,0,0.05);
+    padding: 10px 15px;
+    color: black !important;
+    background: #f8f8f8;
+    visibility: hidden;
+}
+#contextMenu span {
+        cursor: pointer;
+        font-size:14px;
+        display:flex;
+        align-items: center;
+        justify-content: flex-start;
+        margin-bottom: 7px;
+}
+
+#contextMenu img {
+    left: 0;
+    margin-right: 10px;
+    height:20px;
+    width:20px;
 }

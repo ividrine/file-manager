@@ -3,8 +3,17 @@ import path from 'path';
 import fs from 'fs';
 import bodyParser from 'body-parser';
 import rimraf from 'rimraf';
+import Redis from 'ioredis';
+
 
 let app = express();
+
+let redis = new Redis({
+  port: 6379,          // Redis port
+  host: '127.0.0.1',   // Redis host
+  db: 0
+})
+
 let port = process.env.port || 3000;
 const root = 'C:/Users';
 const base_dir = '/ividr';
@@ -13,6 +22,81 @@ app.use(express.static(path.join(__dirname, 'src', 'static')));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+app.post('/api/favorites', (req, res) => {
+
+  let p = req.body.files
+
+  console.log(p);
+
+  redis.sadd('favorites', p)
+    .then((result) => {
+      console.log(result)
+      return res.send({success: true})
+    })
+    .catch((err) => {
+      console.log(err);
+      return res.send({Error: err})
+    })
+
+})
+
+app.delete('/api/favorites', (req, res) => {
+
+  let p = req.body.data.path;
+
+  redis.srem("favorites", p)
+    .then((results) => {
+      console.log(results);
+      return res.send({_results: results});
+    })
+})
+
+app.get('/api/favorites', (req, res) => {
+  
+  let _files = [];
+
+  redis.smembers('favorites')
+    .then((results) => {
+
+      results.forEach((_path) => {
+
+        console.log(_path);
+        let _name = path.basename(_path);
+        
+        console.log(_name);
+
+        
+
+        let isDirectory = fs.statSync(path.join(root, _path)).isDirectory();
+
+        console.log(isDirectory);
+
+        if (isDirectory) {
+          if (_name.length > 20) {
+            let _name_prfx = _name.substr(0, 29) + "...";
+            _files.push({name_prfx: _name_prfx, name: _name, isDirectory: true, path: _path})
+          }
+          else
+            _files.push({name: _name, isDirectory: true, path: _path})
+        }
+        else {
+          let _ext = path.extname(_path);
+          if (_name.length > 20) {
+            let _name_prfx = _name.substr(0, 29) + "...";
+            _files.push({name_prfx: _name_prfx, name: _name, ext: _ext, isDirectory: false, path: _path})
+          }
+          else
+            _files.push({name: _name, ext: _ext, isDirectory: false, path: _path})
+        }
+
+      })
+      return res.send(_files);
+    })
+    .catch((err) => {
+      return res.send(err);
+    })
+
+})
 
 app.get('/api/files', (req, res) => {
 
@@ -35,6 +119,8 @@ app.get('/api/files', (req, res) => {
     files.forEach(file => {
 
       let isDirectory = fs.statSync(path.join(root_path, '/', file)).isDirectory()
+
+
 
       if (isDirectory) {
         if (file.length > 20) {
@@ -108,6 +194,29 @@ app.delete('/api/delete', (req, res)=> {
 
   });
   return res.send({files: _files})
+})
+
+app.put('/api/update', (req, res) => {
+
+  console.log(req.body);
+  if (req.body.fileName && req.body.newName && req.body.path) {
+    let _file = root + req.body.path + "/" + req.body.fileName;
+    let _newFile = root + req.body.path + "/" + req.body.newName;
+
+    fs.rename(_file, _newFile, (err) => {
+      if (err)
+        return res.send({error: err});
+
+      return res.send("Success");
+    })
+
+  }
+  else {
+    return res.send({error: "Request body has incorrect data and/or nothing was found to rename"})
+  }
+
+
+
 })
 
 app.post('/api/create', (req, res) => {

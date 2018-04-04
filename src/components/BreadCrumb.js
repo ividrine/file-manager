@@ -52,24 +52,37 @@ export default class BreadCrumb extends Component {
 
         let _html = []
 
-        this.props.cwd.map((name)=> {
+        console.log("CWD")
+
+        if (this.props.cwd.length == 0) {
+            _html.push(<p>Favorites</p>)
+        }
+        else {
+            this.props.cwd.map((name)=> {
              _html.push(<p key={name} >/{name}</p>)
-        })
+            })
+        }
         
+        console.log("HTML")
+        console.log(_html);
         return (
             <div className="bc">
                 {_html}
                 <div className="tools">
-                    <a onClick={()=>{this.props.setSelect()}} className="waves-effect waves-light btn">Select</a>
-                    <a className="modal-trigger" href="#modal1"><i className="material-icons tool-icon add">add_circle_outline</i></a>
+                    
+                    <a onClick={()=>{this.props.setSelect()}} className="btn">Select</a>
+                    
                     {this.props.selectOpen &&
                         <div style={{display: "inline-block"}}>
-                            <i className="material-icons tool-icon edit">mode_edit</i>
+                            <i onClick={()=> {this.props.addToFavorites()}} style={{color: '#d6c662'}} className="material-icons tool-icon">star_border</i>
                             <i onClick={()=> {this.props.delete()}} className="material-icons tool-icon del">delete_forever</i>
                         </div>
                     }
-                    
+                    <a className="modal-trigger" href="#modal1"><i style={{color: "#72c978"}} className="material-icons tool-icon">add_circle</i></a>
+                    <a onClick={()=>{this.props.getFavorites()}}><i style={{color: '#d6c662'}} className="material-icons tool-icon">star</i></a>
+                    <a onClick={()=>{this.props.loadDefault()}}><i style={{color: "#3a3a3a"}} className="material-icons tool-icon">home</i></a>
                     <i onClick={()=> {this.props.up()}} className="material-icons arrow">arrow_drop_up</i>
+                    
                     
                 </div>
 

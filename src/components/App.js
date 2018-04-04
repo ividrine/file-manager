@@ -2,6 +2,10 @@ import React, {Component} from 'react';
 import axios from 'axios';
 import BreadCrumb from './BreadCrumb';
 import Directory from './Directory';
+import M from 'materialize-css'
+
+
+
 
 export default class App extends Component {
     
@@ -20,7 +24,54 @@ export default class App extends Component {
         this.select = this.select.bind(this)
         this.setSelect = this.setSelect.bind(this);
         this.delete = this.delete.bind(this);
-        this.createFile - this.createFile.bind(this);
+        this.createFile = this.createFile.bind(this);
+        this.getFavorites = this.getFavorites.bind(this);
+        this.loadDefault = this.loadDefault.bind(this);
+        this.addToFavorites = this.addToFavorites.bind(this);
+        
+    }
+
+    addToFavorites() {
+
+        if (this.state.selected.length == 0) 
+            return false;
+        
+        let _files = [];
+
+        this.state.selected.forEach((f) => {
+            _files.push(f.path);
+        })
+
+        axios.post('/api/favorites', {files: _files})
+            .then((resp) => {
+                M.toast(`You added ${_files.length} items to favorites`, 4000)
+                this.setState({
+                    selectOpen: false,
+                    selected: []
+                })
+            })
+            .catch((err) => {
+                console.log(err)
+            })
+
+
+    }
+
+    getFavorites() {
+
+        let _this = this;
+
+        axios.get('/api/favorites')
+            .then((resp) => {
+                console.log(resp)
+                _this.setState({
+                    files: resp.data,
+                    cwd: []
+                })
+            })
+            .catch((err) => {
+                console.log(err);
+            })
     }
 
     createFile(_type, _name) {
@@ -82,10 +133,19 @@ export default class App extends Component {
 
         let _cwd = this.state.cwd;
         let query = "";
-        for (var i = 0; i < _cwd.length; i++) {
-            query += ("/" + _cwd[i])
+
+        if (_cwd.length == 0) {
+            query = name
         }
-        query += ("/" + name);
+        else {
+            for (var i = 0; i < _cwd.length; i++) {
+                query += ("/" + _cwd[i])
+            }
+            query += ("/" + name);
+        }
+        
+        console.log("QUERY")
+        console.log(query);
 
         axios.get('/api/files?path=' + query)
             .then((resp)=> {
@@ -188,7 +248,7 @@ export default class App extends Component {
 
     }
 
-    componentWillMount() {
+    loadDefault() {
 
         axios.get('/api/files')
             .then((resp)=> {
@@ -196,18 +256,29 @@ export default class App extends Component {
                     files: this.sort(resp.data.files),
                     cwd: resp.data.cwd
                 })
+                
             })
             .catch((err)=> {
+
                 console.log(err);
+
             })
+    }
+
+   
+
+    componentWillMount() {
+
+        this.loadDefault();
+
     }
 
     render () {
 
         return (
             <div className="container">
-                <BreadCrumb createFile={this.createFile.bind(this)} setFile={this.setFile} delete={this.delete} selectOpen={this.state.selectOpen} setSelect={this.setSelect} up={this.up} cwd={this.state.cwd} />
-                <Directory selectOpen={this.state.selectOpen} select={this.select} up={this.up} openDir={this.openDir} files={this.state.files} />
+                <BreadCrumb addToFavorites={this.addToFavorites} loadDefault={this.loadDefault} getFavorites={this.getFavorites} createFile={this.createFile} setFile={this.setFile} delete={this.delete} selectOpen={this.state.selectOpen} setSelect={this.setSelect} up={this.up} cwd={this.state.cwd} />
+                <Directory selectOpen={this.state.selectOpen} select={this.select} up={this.up} openDir={this.openDir} files={this.state.files} cwd={this.state.cwd} />
             </div>
           
         )
