@@ -1,6 +1,6 @@
 # file-manager
 
-Basically windows file explorer but not as good
+Web based file explorer
 
 ## Installation 
 run `npm install`
